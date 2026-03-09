@@ -1,0 +1,36 @@
+meta {
+  name: GET /stats (analytics)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/stats
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (typeof body.totalJobs !== 'number') throw new Error("Missing totalJobs");
+  if (typeof body.overallSuccessRate !== 'number') throw new Error("Missing overallSuccessRate");
+  if (!Array.isArray(body.patterns)) throw new Error("patterns must be array");
+  
+  if (body.patterns.length > 0) {
+    let hasCodec = false;
+    let hasBitrate = false;
+    let hasRuntime = false;
+    for (const p of body.patterns) {
+      if (String(p.pattern).includes('Target codec')) hasCodec = true;
+      if (String(p.pattern).includes('Bitrate bucket')) hasBitrate = true;
+      if (String(p.pattern).includes('Runtime vs plan')) hasRuntime = true;
+    }
+    if (!hasCodec) throw new Error("Missing 'Target codec' pattern");
+    if (!hasBitrate) throw new Error("Missing 'Bitrate bucket' pattern");
+    if (!hasRuntime) throw new Error("Missing 'Runtime vs plan' pattern");
+  }
+}

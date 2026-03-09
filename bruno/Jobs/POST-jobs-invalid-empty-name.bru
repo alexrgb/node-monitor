@@ -1,0 +1,30 @@
+meta {
+  name: POST /jobs invalid (empty jobName)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/jobs
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "jobName": ""
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (!body.message) throw new Error("Expected validation message");
+}

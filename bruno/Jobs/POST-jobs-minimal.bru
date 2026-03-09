@@ -1,0 +1,35 @@
+meta {
+  name: POST /jobs (minimal payload)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/jobs
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "jobName": "trailer-001",
+    "arguments": ["codec=h264", "res=1080p", "duration=40", "bitrate=3500", "priority=normal"]
+  }
+}
+
+assert {
+  res.status: eq 202
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (!body.id) throw new Error("Missing id");
+  if (!body.status) throw new Error("Missing status");
+  const allowed = ["queued","running","retried","succeeded","failed","crashed"];
+  if (!allowed.includes(body.status)) throw new Error("Invalid status: " + body.status);
+  if (!Array.isArray(body.history)) throw new Error("history must be array");
+}

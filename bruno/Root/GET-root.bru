@@ -1,0 +1,23 @@
+meta {
+  name: GET / (root)
+  type: http
+  seq: 0
+}
+
+get {
+  url: {{baseUrl}}/
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const txt = res.getBody();
+  bru.setVar("rootResponse", txt);
+  if (txt !== "Hello from NestJS!") {
+    throw new Error("Expected 'Hello from NestJS!' but got: " + txt);
+  }
+}

@@ -1,0 +1,35 @@
+meta {
+  name: POST /jobs (UHD AV1 high priority)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/jobs
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "jobName": "feature-uhd-001",
+    "arguments": ["codec=av1", "res=2160p", "duration=180", "bitrate=16000", "priority=high"]
+  }
+}
+
+assert {
+  res.status: eq 202
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (!body.id) throw new Error("Missing id");
+  if (!body.status) throw new Error("Missing status");
+  const allowed = ["queued","running","retried","succeeded","failed","crashed"];
+  if (!allowed.includes(body.status)) throw new Error("Invalid status: " + body.status);
+  if (!Array.isArray(body.history)) throw new Error("history must be array");
+}

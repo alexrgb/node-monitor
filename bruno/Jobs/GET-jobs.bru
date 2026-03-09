@@ -1,0 +1,33 @@
+meta {
+  name: GET /jobs (list)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/jobs
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (!Array.isArray(body)) throw new Error("Expected array");
+  
+  if (body.length > 0) {
+    const j = body[0];
+    if (!j.id) throw new Error("Missing id");
+    if (!j.jobName) throw new Error("Missing jobName");
+    if (!Array.isArray(j.arguments)) throw new Error("arguments must be array");
+    const allowed = ["queued","running","succeeded","failed","crashed","retried"];
+    if (!allowed.includes(j.status)) throw new Error("Invalid status: " + j.status);
+    if (typeof j.attempts !== 'number') throw new Error("attempts must be number");
+    if (!j.createdAt) throw new Error("Missing createdAt");
+    if (!j.updatedAt) throw new Error("Missing updatedAt");
+    if (!Array.isArray(j.history)) throw new Error("history must be array");
+  }
+}
